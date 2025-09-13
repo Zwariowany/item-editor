@@ -1,0 +1,9 @@
+[package]
+name = "editor"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+eframe = "0.32.3"
+egui = "0.32.3"
+serde = "1.0.219"
