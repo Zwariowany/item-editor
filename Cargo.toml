@@ -6,4 +6,5 @@ edition = "2024"
 [dependencies]
 eframe = "0.32.3"
 egui = "0.32.3"
+egui_dnd = "0.13.0"
 serde = "1.0.219"
