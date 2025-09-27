@@ -1,7 +1,10 @@
 use eframe::egui;
 use eframe::egui::Id;
 
-use egui::{Direction, Layout, ScrollArea, SidePanel, TextEdit, TopBottomPanel};
+use egui::{
+    Align, CentralPanel, Direction, Label, Layout, ScrollArea, SidePanel, TextEdit, TopBottomPanel,
+    UiBuilder, vec2,
+};
 use egui_dnd::DragDropItem;
 
 pub fn main() -> eframe::Result<()> {
@@ -59,6 +62,7 @@ impl eframe::App for MyApp {
         });
 
         SidePanel::left("Item view")
+            .min_width(150.0)
             .resizable(true)
             .show(ctx, |ui| {
                 ui.vertical_centered(|ui| {
@@ -70,36 +74,36 @@ impl eframe::App for MyApp {
                 let text_edit = TextEdit::singleline(&mut input).hint_text("Search your items");
                 ui.add(text_edit);
 
-                ScrollArea::vertical().show(ui, |ui| {
-                    ui.set_width(ui.available_width());
-                    ui.set_height(ui.available_height() - 32.0);
+                TopBottomPanel::bottom("new item button")
+                    .resizable(false)
+                    .min_height(24.0)
+                    .show_inside(ui, |ui| {
+                        ui.with_layout(Layout::top_down_justified(Align::Center), |ui| {
+                            // BUG: Button doesnt' cover all available space (left and right side)
+                            if ui.button("Add new item").clicked() {
+                                self.add_item();
+                            }
+                        });
+                    });
 
-                    for item in &self.items {
-                        let response = ui.selectable_label(false, &item.name);
+                CentralPanel::default().show_inside(ui, |ui| {
+                    ScrollArea::vertical().show(ui, |ui| {
+                        for item in &self.items {
+                            ui.vertical_centered(|ui| {
+                                ui.with_layout(Layout::top_down_justified(Align::LEFT), |ui| {
+                                    let response = ui.selectable_label(false, &item.name);
 
-                        if response.hovered() {
-                            response.highlight();
+                                    if response.hovered() {
+                                        response.highlight();
+                                    }
+                                });
+                            });
                         }
-                    }
+                    });
                 });
-
-                ui.separator();
-
-                ui.with_layout(
-                    Layout::centered_and_justified(Direction::LeftToRight),
-                    |ui| {
-                        let add_item_button = ui.button("Add new item");
-
-                        if add_item_button.clicked() {
-                            self.add_item();
-                        }
-                    },
-                );
-
-                Layout::horizontal_align
             });
 
-        egui::CentralPanel::default().show(ctx, |ui| {
+        CentralPanel::default().show(ctx, |ui| {
             ui.label("Here edit your item");
         });
     }
