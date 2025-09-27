@@ -83,13 +83,21 @@ impl eframe::App for MyApp {
                 ScrollArea::vertical().show(ui, |ui| {
                     ui.set_width(ui.available_width());
                     ui.set_height(ui.available_height() - 32.0);
-                    let response = dnd(ui, "root").show(
-                        self.items.iter_mut(),
-                        |ui, item, handle, _pressed| {
-                            MyApp::draw_item_label(ui, item, handle);
-                        },
-                    );
-                    response.update_vec(&mut self.items);
+                    // let response = dnd(ui, "root").show(
+                    //     self.items.iter_mut(),
+                    //     |ui, item, handle, _pressed| {
+                    //         MyApp::draw_item_label(ui, item, handle);
+                    //     },
+                    // );
+                    // response.update_vec(&mut self.items);
+
+                    for item in &self.items {
+                        let response = ui.selectable_label(false, &item.name);
+
+                        if response.hovered() {
+                            response.highlight();
+                        }
+                    }
                 });
 
                 ui.separator();
