@@ -1,8 +1,8 @@
 use eframe::egui;
-use eframe::egui::{Id, Ui};
+use eframe::egui::Id;
 
 use egui::{Direction, Layout, ScrollArea, SidePanel, TextEdit, TopBottomPanel};
-use egui_dnd::{DragDropItem, Handle, dnd};
+use egui_dnd::DragDropItem;
 
 pub fn main() -> eframe::Result<()> {
     let options = eframe::NativeOptions {
@@ -41,16 +41,6 @@ struct MyApp {
 }
 
 impl MyApp {
-    fn draw_item_label(ui: &mut Ui, item: &mut Item, handle: Handle) {
-        handle.ui(ui, |ui| {
-            let response = ui.selectable_label(false, &item.name);
-
-            if response.hovered() {
-                response.highlight();
-            }
-        });
-    }
-
     fn add_item(&mut self) {
         self.items.push(Item::new(self.available_id));
         self.available_id += 1;
@@ -83,13 +73,6 @@ impl eframe::App for MyApp {
                 ScrollArea::vertical().show(ui, |ui| {
                     ui.set_width(ui.available_width());
                     ui.set_height(ui.available_height() - 32.0);
-                    // let response = dnd(ui, "root").show(
-                    //     self.items.iter_mut(),
-                    //     |ui, item, handle, _pressed| {
-                    //         MyApp::draw_item_label(ui, item, handle);
-                    //     },
-                    // );
-                    // response.update_vec(&mut self.items);
 
                     for item in &self.items {
                         let response = ui.selectable_label(false, &item.name);
@@ -109,7 +92,6 @@ impl eframe::App for MyApp {
 
                         if add_item_button.clicked() {
                             self.add_item();
-                            // self.items.push(Item::default());
                         }
                     },
                 );
@@ -119,11 +101,6 @@ impl eframe::App for MyApp {
 
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.label("Here edit your item");
-            // let response =
-            //     dnd(ui, "root").show(self.items.iter_mut(), |ui, item, handle, _pressed| {
-            //         MyApp::draw_item(ui, item, handle);
-            //     });
-            // response.update_vec(&mut self.items);
         });
     }
 }
