@@ -1,8 +1,10 @@
+use std::collections::HashMap;
+
 use eframe::egui;
 use eframe::egui::Id;
 
 use egui::{
-    Align, CentralPanel, Direction, Layout, Margin, ScrollArea, SidePanel, Stroke, TextEdit,
+    Align, CentralPanel, Context, Direction, Layout, ScrollArea, SidePanel, Stroke, TextEdit,
     TopBottomPanel,
 };
 use egui_dnd::DragDropItem;
@@ -18,7 +20,7 @@ pub fn main() -> eframe::Result<()> {
     )
 }
 
-#[derive(Default, Clone)]
+#[derive(Default)]
 struct Item {
     id: u16,
     name: String,
@@ -41,15 +43,17 @@ impl DragDropItem for &mut Item {
     }
 }
 
-#[derive(Default, Clone)]
+#[derive(Default)]
 struct MyApp {
-    items: Vec<Item>,
+    items: HashMap<u16, Item>,
     available_id: u16,
+    selected_item_id: Option<u16>,
 }
 
 impl MyApp {
     fn add_item(&mut self) {
-        self.items.push(Item::new(self.available_id));
+        self.items
+            .insert(self.available_id, Item::new(self.available_id));
         self.available_id += 1;
     }
 
@@ -74,6 +78,7 @@ impl MyApp {
                         let text_edit =
                             TextEdit::singleline(&mut input).hint_text("Search your items");
                         ui.add(text_edit);
+                        ui.separator();
                     });
 
                 TopBottomPanel::bottom("new item button")
@@ -82,7 +87,6 @@ impl MyApp {
                     .frame(egui::Frame::default().inner_margin(0.0).outer_margin(0.0))
                     .show_inside(ui, |ui| {
                         ui.with_layout(Layout::top_down_justified(Align::Center), |ui| {
-                            // BUG: Button doesnt' cover all available space (left and right side)
                             if ui.button("Add new item").clicked() {
                                 self.add_item();
                             }
@@ -93,13 +97,13 @@ impl MyApp {
                     .frame(egui::Frame::default().stroke(Stroke::NONE))
                     .show_inside(ui, |ui| {
                         ScrollArea::vertical().show(ui, |ui| {
-                            for item in &self.items {
+                            for item in self.items.values() {
                                 ui.vertical_centered(|ui| {
                                     ui.with_layout(Layout::top_down_justified(Align::LEFT), |ui| {
                                         let response = ui.selectable_label(false, &item.name);
 
-                                        if response.hovered() {
-                                            response.highlight();
+                                        if response.clicked() {
+                                            self.selected_item_id = Some(item.id);
                                         }
                                     });
                                 });
@@ -120,9 +124,17 @@ impl MyApp {
         });
     }
 
-    fn central_panel(&self, ctx: &egui::Context) {
+    fn central_panel(&mut self, ctx: &egui::Context) {
         CentralPanel::default().show(ctx, |ui| {
-            ui.label("Here edit your item");
+            if let Some(item_id) = self.selected_item_id {
+                self.items.entry(item_id).and_modify(|item| {
+                    let name_input = TextEdit::singleline(&mut item.name);
+                    let description_input = TextEdit::multiline(&mut item.description);
+
+                    ui.add(name_input);
+                    ui.add(description_input);
+                });
+            }
         });
     }
 }
@@ -130,7 +142,7 @@ impl MyApp {
 impl eframe::App for MyApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         self.header(ctx);
-        self.central_panel(ctx);
         self.left_panel(ctx);
+        self.central_panel(ctx);
     }
 }
